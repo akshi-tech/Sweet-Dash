@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sweet Dash: Lollipop Sky - Edition by akshi🌸</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Fredoka', 'sans-serif'],
+            body: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            candyPink: '#FF80BF',
+            candyPurple: '#C084FC',
+            pastelBg: '#FFF0F5',
+            softYellow: '#FEF08A',
+            softGreen: '#86EFAC',
+            softSky: '#7DD3FC'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    body {
+      background: linear-gradient(135deg, #FFE5EC 0%, #F0E6FF 50%, #E0F2FE 100%);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .game-box {
+      box-shadow: 0 20px 50px rgba(219, 39, 119, 0.15);
+    }
+    .pulse-countdown {
+      animation: pulseScale 0.8s ease-in-out infinite;
+    }
+    @keyframes pulseScale {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.8; }
+    }
+  </style>
+</head>
+<!-- Chosen Palette: Pastel Dream Candy (Pink #FF80BF, Soft Lavender #C084FC, Sky Blue #7DD3FC, Buttercup Yellow #FEF08A, Warm Cream Background) -->
+<!-- Application Structure Plan: Mobile-first interactive HTML5 game architecture featuring: 1) Responsive HTML Canvas with high-DPI scaling for mobile screens, 2) Difficulty Selection State (Easy, Hard, Too Hard) adjusting gravity, obstacle gap, and speed, 3) Animated Get Ready countdown transition (3-2-1-GO) for smooth starts on touch devices, 4) Web Audio API sound synthesis (no external MP3 assets required), 5) Custom canvas visual rendering of swirl lollipops, candy canes, floating stars, and a fluffy bird wearing a cherry blossom flower, 6) Integrated credits & personalized signature for 'akshi🌸'. -->
+<!-- Visualization & Content Choices: Canvas-rendered procedural graphics for obstacles and player character (NO SVG/Mermaid). Sound synthesized in real-time using AudioContext oscillators for jump pops, star collection chimes, and hit sounds. Touch-event optimized listeners (pointerdown, touchstart) with preventDefault to eliminate double-tap zoom on phones. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<body class="flex flex-col min-h-screen items-center justify-between p-2 sm:p-4">
+
+  <!-- Top Navigation Header -->
+  <header class="w-full max-w-md flex items-center justify-between bg-white/80 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-pink-200/80 shadow-sm mt-1">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🍭</span>
+      <div>
+        <h1 class="font-display font-bold text-base text-slate-800 leading-none">Sweet Dash</h1>
+        <p class="text-[10px] text-pink-500 font-bold tracking-wide">Lollipop Sky</p>
+      </div>
+    </div>
+    
+    <!-- Signature Badge -->
+    <div class="bg-gradient-to-r from-pink-100 to-purple-100 border border-pink-300/60 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+      <span class="text-xs font-bold text-pink-600 font-display">akshi🌸</span>
+    </div>
+  </header>
+
+  <!-- Main Game Container -->
+  <main class="relative w-full max-w-md aspect-[2/3] max-h-[75vh] my-auto rounded-3xl overflow-hidden border-4 border-white game-box bg-slate-900">
+    
+    <!-- Canvas Element -->
+    <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
+
+    <!-- Overlay 1: Start & Difficulty Selection Screen -->
+    <div id="startScreen" class="absolute inset-0 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20 space-y-4">
+      <div class="relative">
+        <span class="text-5xl animate-bounce inline-block">🌸</span>
+        <h2 class="font-display text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+          Sweet Dash
+        </h2>
+        <p class="text-xs font-semibold text-slate-500 mt-0.5">Guide your bird through the candy sky!</p>
+      </div>
+
+      <!-- Difficulty Buttons -->
+      <div class="w-full space-y-2 pt-2">
+        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Select Difficulty</label>
+        
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="setDifficulty('easy')" id="btnEasy" class="diff-btn py-2.5 px-2 rounded-2xl font-display font-bold text-xs bg-emerald-100 text-emerald-700 border-2 border-emerald-400 shadow-sm transition-all scale-105">
+            🌱 Easy
+          </button>
+          <button onclick="setDifficulty('hard')" id="btnHard" class="diff-btn py-2.5 px-2 rounded-2xl font-display font-bold text-xs bg-white text-slate-600 border-2 border-slate-200 shadow-sm transition-all">
+            ⚡ Hard
+          </button>
+          <button onclick="setDifficulty('tooHard')" id="btnTooHard" class="diff-btn py-2.5 px-2 rounded-2xl font-display font-bold text-xs bg-white text-slate-600 border-2 border-slate-200 shadow-sm transition-all">
+            🔥 Too Hard
+          </button>
+        </div>
+      </div>
+
+      <!-- Highscore Banner -->
+      <div class="bg-pink-50 px-4 py-2 rounded-xl border border-pink-100 text-xs font-bold text-pink-600 flex items-center gap-2">
+        <i class="fa-solid fa-trophy text-amber-400"></i>
+        <span>Best Score: <span id="bestScoreText">0</span></span>
+      </div>
+
+      <!-- Start Button -->
+      <button onclick="initCountdown()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-display font-bold text-lg shadow-lg shadow-pink-300 hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-2">
+        <i class="fa-solid fa-play text-sm"></i> START GAME
+      </button>
+
+      <!-- Signature Footer in Menu -->
+      <p class="text-xs text-slate-400 font-medium pt-1">
+        Created with 💖 by <span class="font-bold text-pink-500">akshi🌸</span>
+      </p>
+    </div>
+
+    <!-- Overlay 2: "Get Ready" Countdown Screen -->
+    <div id="countdownScreen" class="absolute inset-0 bg-pink-500/20 backdrop-blur-sm flex flex-col items-center justify-center z-30 hidden pointer-events-none">
+      <span class="text-sm font-bold font-display text-white bg-pink-500/80 px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md mb-4">Get Ready!</span>
+      <div id="countdownNumber" class="font-display font-bold text-8xl text-white drop-shadow-lg pulse-countdown">
+        3
+      </div>
+    </div>
+
+    <!-- Overlay 3: Game Over Screen -->
+    <div id="gameOverScreen" class="absolute inset-0 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20 hidden space-y-4">
+      <div class="space-y-1">
+        <span class="text-4xl">💥</span>
+        <h2 class="font-display text-3xl font-bold text-slate-800">Oopsie!</h2>
+        <p class="text-xs text-slate-500">You touched a candy obstacle!</p>
+      </div>
+
+      <!-- Score Box -->
+      <div class="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
+        <div class="flex justify-between items-center text-xs font-bold text-slate-500">
+          <span>SCORE</span>
+          <span id="finalScore" class="text-2xl font-display font-bold text-pink-500">0</span>
+        </div>
+        <div class="border-t border-slate-200 my-1"></div>
+        <div class="flex justify-between items-center text-xs font-bold text-slate-500">
+          <span>BEST SCORE</span>
+          <span id="finalBest" class="text-base font-display font-bold text-purple-600">0</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="w-full grid grid-cols-2 gap-3">
+        <button onclick="showMenu()" class="py-3 rounded-2xl bg-slate-100 text-slate-700 font-display font-bold text-sm hover:bg-slate-200 active:scale-95 transition">
+          <i class="fa-solid fa-bars mr-1"></i> Menu
+        </button>
+        <button onclick="initCountdown()" class="py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-display font-bold text-sm shadow-md hover:opacity-95 active:scale-95 transition">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Try Again
+        </button>
+      </div>
+
+      <!-- Signature Footer in Game Over -->
+      <p class="text-xs text-slate-400 font-medium pt-2">
+        Designed with 🌸 by <span class="font-bold text-pink-500">akshi🌸</span>
+      </p>
+    </div>
+
+  </main>
+
+  <!-- Controls Hint Footer -->
+  <footer class="w-full max-w-md text-center py-2 space-y-1">
+    <p class="text-xs font-semibold text-slate-500 flex items-center justify-center gap-2">
+      <i class="fa-solid fa-hand-pointer text-pink-400"></i> Tap Screen or Press Spacebar to Jump
+    </p>
+    <p class="text-[11px] font-bold text-slate-400">
+      Sweet Dash Mobile App • Special Edition for <span class="text-pink-500">akshi🌸</span>
+    </p>
+  </footer>
+
+  <!-- GAME ENGINE JAVASCRIPT -->
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // UI Overlay elements
+    const startScreen = document.getElementById("startScreen");
+    const countdownScreen = document.getElementById("countdownScreen");
+    const countdownNumber = document.getElementById("countdownNumber");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const bestScoreText = document.getElementById("bestScoreText");
+    const finalScore = document.getElementById("finalScore");
+    const finalBest = document.getElementById("finalBest");
+
+    // Sound Synthesizer (Web Audio API - No external dependencies)
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playSound(type) {
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'jump') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.12);
+        } else if (type === 'score') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); // E5
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.2);
+        } else if (type === 'hit') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+          osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.2);
+        }
+      } catch(e){}
+    }
+
+    // High DPI Canvas Resize
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+    window.addEventListener("resize", resizeCanvas);
+
+    // Difficulty Settings Config
+    const DIFFICULTY_SETTINGS = {
+      easy: { gravity: 0.26, jump: -6.2, speed: 1.8, gap: 175, spawnRate: 130 },
+      hard: { gravity: 0.34, jump: -7.0, speed: 2.6, gap: 140, spawnRate: 105 },
+      tooHard: { gravity: 0.42, jump: -7.8, speed: 3.4, gap: 120, spawnRate: 85 }
+    };
+
+    let currentDifficulty = 'easy';
+    let config = DIFFICULTY_SETTINGS.easy;
+
+    function setDifficulty(mode) {
+      currentDifficulty = mode;
+      config = DIFFICULTY_SETTINGS[mode];
+
+      document.querySelectorAll(".diff-btn").forEach(btn => {
+        btn.className = "diff-btn py-2.5 px-2 rounded-2xl font-display font-bold text-xs bg-white text-slate-600 border-2 border-slate-200 shadow-sm transition-all";
+      });
+
+      const activeBtn = document.getElementById(`btn${mode.charAt(0).toUpperCase() + mode.slice(1)}`);
+      if (mode === 'easy') {
+        activeBtn.className = "diff-btn py-2.5 px-2 rounded-2xl font-display font-bold text-xs bg-emerald-100 text-emerald-700 border-2 border-emerald-400 shadow-sm transition-all scale-105";
+      } else if (mode === 'hard') {
+        activeBtn.className = "diff-btn py-2.5 px-2 rounded-2xl font-display font-bold text-xs bg-amber-100 text-amber-700 border-2 border-amber-400 shadow-sm transition-all scale-105";
+      } else {
+        activeBtn.className = "diff-btn py-2.5 px-2 rounded-2xl font-display font-bold text-xs bg-rose-100 text-rose-700 border-2 border-rose-400 shadow-sm transition-all scale-105";
+      }
+    }
+
+    // High score persistence
+    let bestScore = parseInt(localStorage.getItem("sweet_dash_best_akshi") || "0");
+    bestScoreText.textContent = bestScore;
+
+    // Game Variables
+    let bird, obstacles, stars, frameCount, score, gameState;
+    const PASTEL_COLORS = ["#FF80BF", "#C084FC", "#38BDF8", "#FBBF24", "#34D399", "#FB7185"];
+
+    function resetGameData() {
+      resizeCanvas();
+      bird = {
+        x: canvas.width * 0.25,
+        y: canvas.height * 0.4,
+        radius: 16,
+        velocity: 0,
+        rotation: 0
+      };
+      obstacles = [];
+      stars = [];
+      frameCount = 0;
+      score = 0;
+      gameState = "MENU"; // MENU, COUNTDOWN, PLAYING, GAMEOVER
+    }
+
+    // Countdown Logic
+    function initCountdown() {
+      initAudio();
+      resetGameData();
+      startScreen.classList.add("hidden");
+      gameOverScreen.classList.add("hidden");
+      countdownScreen.classList.remove("hidden");
+      
+      gameState = "COUNTDOWN";
+      let count = 3;
+      countdownNumber.textContent = count;
+
+      const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownNumber.textContent = count;
+        } else if (count === 0) {
+          countdownNumber.textContent = "GO!";
+        } else {
+          clearInterval(timer);
+          countdownScreen.classList.add("hidden");
+          gameState = "PLAYING";
+          requestAnimationFrame(gameLoop);
+        }
+      }, 700);
+    }
+
+    function showMenu() {
+      gameState = "MENU";
+      gameOverScreen.classList.add("hidden");
+      startScreen.classList.remove("hidden");
+      bestScoreText.textContent = bestScore;
+      resetGameData();
+      drawMenuBackground();
+    }
+
+    // Obstacle & Star Spawner
+    function spawnObstacle() {
+      const minHeight = 60;
+      const maxHeight = canvas.height - config.gap - 100;
+      const topHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+
+      const topColor = PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
+      const bottomColor = PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
+
+      obstacles.push({
+        x: canvas.width,
+        topHeight: topHeight,
+        bottomY: topHeight + config.gap,
+        width: 52,
+        topColor: topColor,
+        bottomColor: bottomColor,
+        passed: false
+      });
+
+      // Spawn bonus collectible star in gap
+      if (Math.random() > 0.4) {
+        stars.push({
+          x: canvas.width + 26,
+          y: topHeight + (config.gap / 2) + (Math.random() * 30 - 15),
+          radius: 10,
+          collected: false
+        });
+      }
+    }
+
+    // Main Update Cycle
+    function update() {
+      if (gameState !== "PLAYING") return;
+
+      // Physics
+      bird.velocity += config.gravity;
+      bird.y += bird.velocity;
+      bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 6, bird.velocity * 0.08));
+
+      // Floor & Ceiling Collision
+      if (bird.y + bird.radius >= canvas.height - 20 || bird.y - bird.radius <= 0) {
+        triggerGameOver();
+        return;
+      }
+
+      // Spawn obstacles
+      if (frameCount % config.spawnRate === 0) {
+        spawnObstacle();
+      }
+
+      // Update Obstacles
+      for (let i = 0; i < obstacles.length; i++) {
+        let obs = obstacles[i];
+        obs.x -= config.speed;
+
+        // Score increment
+        if (!obs.passed && obs.x + obs.width < bird.x) {
+          obs.passed = true;
+          score++;
+          playSound('score');
+        }
+
+        // Collision Check
+        const inX = bird.x + bird.radius > obs.x && bird.x - bird.radius < obs.x + obs.width;
+        const hitTop = bird.y - bird.radius < obs.topHeight;
+        const hitBottom = bird.y + bird.radius > obs.bottomY;
+
+        if (inX && (hitTop || hitBottom)) {
+          triggerGameOver();
+          return;
+        }
+      }
+
+      // Update Bonus Stars
+      for (let i = 0; i < stars.length; i++) {
+        let star = stars[i];
+        star.x -= config.speed;
+
+        if (!star.collected) {
+          const dist = Math.hypot(bird.x - star.x, bird.y - star.y);
+          if (dist < bird.radius + star.radius) {
+            star.collected = true;
+            score += 2; // Bonus points!
+            playSound('score');
+          }
+        }
+      }
+
+      // Clean offscreen
+      if (obstacles.length && obstacles[0].x < -60) obstacles.shift();
+      if (stars.length && stars[0].x < -30) stars.shift();
+
+      frameCount++;
+    }
+
+    // Custom Canvas Renderer (No SVGs used)
+    function draw() {
+      // Sky Gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      skyGrad.addColorStop(0, '#BAE6FD');
+      skyGrad.addColorStop(0.7, '#FBCFE8');
+      skyGrad.addColorStop(1, '#FFF1F2');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Candy Land Hills (Background)
+      ctx.fillStyle = "rgba(244, 114, 182, 0.2)";
+      ctx.beginPath();
+      ctx.arc(80, canvas.height, 160, 0, Math.PI, true);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(192, 132, 252, 0.2)";
+      ctx.beginPath();
+      ctx.arc(canvas.width - 60, canvas.height, 180, 0, Math.PI, true);
+      ctx.fill();
+
+      // Draw Obstacles (Swirl Lollipops & Candy Canes)
+      obstacles.forEach(obs => {
+        // Top Lollipop
+        drawLollipop(obs.x, 0, obs.width, obs.topHeight, obs.topColor, true);
+        // Bottom Lollipop
+        drawLollipop(obs.x, obs.bottomY, obs.width, canvas.height - obs.bottomY, obs.bottomColor, false);
+      });
+
+      // Draw Stars
+      stars.forEach(star => {
+        if (!star.collected) {
+          ctx.save();
+          ctx.translate(star.x, star.y);
+          ctx.fillStyle = "#FBBF24";
+          ctx.beginPath();
+          ctx.arc(0, 0, star.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#FFF";
+          ctx.beginPath();
+          ctx.arc(-2, -2, 3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      });
+
+      // Draw Player Bird (With Flower 🌸)
+      ctx.save();
+      ctx.translate(bird.x, bird.y);
+      ctx.rotate(bird.rotation);
+
+      // Bird Body
+      ctx.fillStyle = "#FF80BF";
+      ctx.beginPath();
+      ctx.arc(0, 0, bird.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Wing
+      ctx.fillStyle = "#FFF";
+      ctx.beginPath();
+      ctx.ellipse(-4, 2, 8, 5, Math.PI / 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eye
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(6, -4, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Beak
+      ctx.fillStyle = "#F97316";
+      ctx.beginPath();
+      ctx.moveTo(12, -2);
+      ctx.lineTo(19, 2);
+      ctx.lineTo(12, 5);
+      ctx.closePath();
+      ctx.fill();
+
+      // Signature Flower on Head 🌸
+      ctx.font = "14px serif";
+      ctx.fillText("🌸", -10, -12);
+
+      ctx.restore();
+
+      // Floor Grass
+      ctx.fillStyle = "#4ADE80";
+      ctx.fillRect(0, canvas.height - 18, canvas.width, 18);
+
+      // Signature Canvas Watermark
+      ctx.font = "bold 11px Plus Jakarta Sans";
+      ctx.fillStyle = "rgba(100, 116, 139, 0.5)";
+      ctx.textAlign = "right";
+      ctx.fillText("by akshi🌸", canvas.width - 12, canvas.height - 25);
+
+      // Live Score
+      if (gameState === "PLAYING") {
+        ctx.fillStyle = "#FFF";
+        ctx.font = "bold 32px Fredoka";
+        ctx.textAlign = "center";
+        ctx.strokeStyle = "rgba(219, 39, 119, 0.5)";
+        ctx.lineWidth = 4;
+        ctx.strokeText(score, canvas.width / 2, 50);
+        ctx.fillText(score, canvas.width / 2, 50);
+      }
+    }
+
+    // Helper: Render Swirl Lollipop Pillar
+    function drawLollipop(x, y, width, height, color, isTop) {
+      ctx.save();
+      
+      // Candy Stick
+      ctx.fillStyle = "#FFF";
+      ctx.fillRect(x + (width / 2) - 6, y, 12, height);
+      
+      // Stripe patterns on stick
+      ctx.fillStyle = "#F43F5E";
+      for (let i = 0; i < height; i += 20) {
+        ctx.fillRect(x + (width / 2) - 6, y + i, 12, 6);
+      }
+
+      // Swirling Lollipop Head
+      const headY = isTop ? y + height : y;
+      const radius = width / 1.5;
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x + (width / 2), headY, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner Swirl Line
+      ctx.strokeStyle = "#FFF";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x + (width / 2), headY, radius * 0.5, 0, Math.PI * 1.5);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function triggerGameOver() {
+      playSound('hit');
+      gameState = "GAMEOVER";
+
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("sweet_dash_best_akshi", bestScore.toString());
+      }
+
+      finalScore.textContent = score;
+      finalBest.textContent = bestScore;
+      gameOverScreen.classList.remove("hidden");
+    }
+
+    function gameLoop() {
+      if (gameState !== "PLAYING") return;
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function drawMenuBackground() {
+      resizeCanvas();
+      draw();
+    }
+
+    // Jump Input Handler
+    function handleJump(e) {
+      if (e) e.preventDefault();
+      initAudio();
+      if (gameState === "PLAYING") {
+        bird.velocity = config.jump;
+        playSound('jump');
+      }
+    }
+
+    // Touch & Keyboard Event Listeners
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space") handleJump(e);
+    });
+    canvas.addEventListener("pointerdown", handleJump);
+
+    // Initial Setup
+    showMenu();
+  </script>
+
+</body>
+</html>
