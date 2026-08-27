@@ -62,8 +62,8 @@
   </style>
 </head>
 <!-- Chosen Palette: Pastel Dream Candy (Pink #FF80BF, Soft Lavender #C084FC, Sky Blue #7DD3FC, Buttercup Yellow #FEF08A, Warm Cream Background) -->
-<!-- Application Structure Plan: Mobile-first interactive HTML5 game architecture featuring: 1) Responsive HTML Canvas with high-DPI scaling for mobile screens, 2) Difficulty Selection State (Easy, Hard, Too Hard) adjusting gravity, obstacle gap, and speed, 3) Animated Get Ready countdown transition (3-2-1-GO) for smooth starts on touch devices, 4) Web Audio API sound synthesis (no external MP3 assets required), 5) Custom canvas visual rendering of swirl lollipops, candy canes, floating stars, and a fluffy bird wearing a cherry blossom flower, 6) Integrated credits & personalized signature for 'akshi🌸'. -->
-<!-- Visualization & Content Choices: Canvas-rendered procedural graphics for obstacles and player character (NO SVG/Mermaid). Sound synthesized in real-time using AudioContext oscillators for jump pops, star collection chimes, and hit sounds. Touch-event optimized listeners (pointerdown, touchstart) with preventDefault to eliminate double-tap zoom on phones. -->
+<!-- Application Structure Plan: Mobile-first interactive HTML5 game architecture featuring: 1) Responsive HTML Canvas with high-DPI scaling for mobile screens, 2) Difficulty Selection State (Easy, Hard, Too Hard) adjusting gravity, obstacle gap, and speed, 3) Animated Get Ready countdown transition (3-2-1-GO) for smooth starts on touch devices, 4) Web Audio API sound synthesis, 5) Real-time floating Gen Z aura pops and teasings ("+1000 AURA 💅", "SLAY QUEEN ✨", "NO CAP 🔥") during obstacle passes and star collections, 6) Gen Z roast titles and taunts ("-1000000 AURA 😭", "L BOZO 💀", "SKILL ISSUE 🤡") on the Game Over screen, 7) Integrated credits & personalized signature for 'akshi🌸'. -->
+<!-- Visualization & Content Choices: Canvas-rendered procedural graphics for obstacles, floating text popups, and player character (NO SVG/Mermaid). Sound synthesized in real-time using AudioContext oscillators for jump pops, star collection chimes, and hit sounds. Touch-event optimized listeners (pointerdown, touchstart) with preventDefault to eliminate double-tap zoom on phones. -->
 <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
 <body class="flex flex-col min-h-screen items-center justify-between p-2 sm:p-4">
@@ -97,7 +97,7 @@
         <h2 class="font-display text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
           Sweet Dash
         </h2>
-        <p class="text-xs font-semibold text-slate-500 mt-0.5">Guide your bird through the candy sky!</p>
+        <p class="text-xs font-semibold text-slate-500 mt-0.5">Flex your aura in the candy sky!</p>
       </div>
 
       <!-- Difficulty Buttons -->
@@ -120,7 +120,7 @@
       <!-- Highscore Banner -->
       <div class="bg-pink-50 px-4 py-2 rounded-xl border border-pink-100 text-xs font-bold text-pink-600 flex items-center gap-2">
         <i class="fa-solid fa-trophy text-amber-400"></i>
-        <span>Best Score: <span id="bestScoreText">0</span></span>
+        <span>Max Aura Score: <span id="bestScoreText">0</span></span>
       </div>
 
       <!-- Start Button -->
@@ -136,29 +136,29 @@
 
     <!-- Overlay 2: "Get Ready" Countdown Screen -->
     <div id="countdownScreen" class="absolute inset-0 bg-pink-500/20 backdrop-blur-sm flex flex-col items-center justify-center z-30 hidden pointer-events-none">
-      <span class="text-sm font-bold font-display text-white bg-pink-500/80 px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md mb-4">Get Ready!</span>
+      <span class="text-sm font-bold font-display text-white bg-pink-500/80 px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md mb-4">LOCK IN! 🔥</span>
       <div id="countdownNumber" class="font-display font-bold text-8xl text-white drop-shadow-lg pulse-countdown">
         3
       </div>
     </div>
 
-    <!-- Overlay 3: Game Over Screen -->
-    <div id="gameOverScreen" class="absolute inset-0 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20 hidden space-y-4">
+    <!-- Overlay 3: Game Over Screen (Gen Z Taunt Edition) -->
+    <div id="gameOverScreen" class="absolute inset-0 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20 hidden space-y-4">
       <div class="space-y-1">
-        <span class="text-4xl">💥</span>
-        <h2 class="font-display text-3xl font-bold text-slate-800">Oopsie!</h2>
-        <p class="text-xs text-slate-500">You touched a candy obstacle!</p>
+        <span id="genzEmoji" class="text-5xl inline-block animate-bounce">💀</span>
+        <h2 id="genzTitle" class="font-display text-2xl font-bold text-pink-600">L + RATIO 😭</h2>
+        <p id="genzSubtext" class="text-xs font-semibold text-slate-500">Bro really lost all their aura...</p>
       </div>
 
       <!-- Score Box -->
       <div class="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
         <div class="flex justify-between items-center text-xs font-bold text-slate-500">
-          <span>SCORE</span>
+          <span>FINAL SCORE</span>
           <span id="finalScore" class="text-2xl font-display font-bold text-pink-500">0</span>
         </div>
         <div class="border-t border-slate-200 my-1"></div>
         <div class="flex justify-between items-center text-xs font-bold text-slate-500">
-          <span>BEST SCORE</span>
+          <span>HIGHEST AURA</span>
           <span id="finalBest" class="text-base font-display font-bold text-purple-600">0</span>
         </div>
       </div>
@@ -169,7 +169,7 @@
           <i class="fa-solid fa-bars mr-1"></i> Menu
         </button>
         <button onclick="initCountdown()" class="py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-display font-bold text-sm shadow-md hover:opacity-95 active:scale-95 transition">
-          <i class="fa-solid fa-rotate-right mr-1"></i> Try Again
+          <i class="fa-solid fa-rotate-right mr-1"></i> Re-Lock In
         </button>
       </div>
 
@@ -204,8 +204,45 @@
     const bestScoreText = document.getElementById("bestScoreText");
     const finalScore = document.getElementById("finalScore");
     const finalBest = document.getElementById("finalBest");
+    const genzTitle = document.getElementById("genzTitle");
+    const genzSubtext = document.getElementById("genzSubtext");
+    const genzEmoji = document.getElementById("genzEmoji");
 
-    // Sound Synthesizer (Web Audio API - No external dependencies)
+    // Gen Z Teasings & Roasts Arrays
+    const GENZ_PASS_TEASES = [
+      "+1000 AURA 💅",
+      "SLAY QUEEN ✨",
+      "NO CAP 🔥",
+      "MAD RIZZ ⚡",
+      "MAIN CHARACTER 👑",
+      "SHEESH 🥶",
+      "CHAD FLOAT 🗿",
+      "ABSOLUTE CINEMA 🎬",
+      "W AURA 📈",
+      "CLEAN FLOAT 🪽",
+      "LOCK IN 🔒",
+      "UNTOUCHABLE 💫"
+    ];
+
+    const GENZ_STAR_TEASES = [
+      "BONUS AURA 🌟",
+      "+5000 AURA 💖",
+      "DIAMOND RIZZ 💎",
+      "GIGA CHAD 🗿",
+      "CLOCK IT 💅🏻"
+    ];
+
+    const GENZ_ROASTS = [
+      { emoji: "💀", title: "-1,000,000 AURA 😭", text: "Bro lost all their aura in front of everyone..." },
+      { emoji: "🤡", title: "SKILL ISSUE FR 💀", text: "Bro really thought they were the main character..." },
+      { emoji: "📉", title: "MASSIVE L BOZO 📉", text: "Fell off harder than a high school relationship." },
+      { emoji: "😭", title: "YOU GOT COOKED AF 🍳", text: "Heavy cooked, no cap fr fr." },
+      { emoji: "🤖", title: "NPC ENERGY DETECTED 🤖", text: "Even an AI could fly better than that!" },
+      { emoji: "🫠", title: "EMOTIONAL DAMAGE 💔", text: "Aura completely drained to zero." },
+      { emoji: "🗿", title: "DOWN BAD 😭", text: "Bro touched the lollipop stick... cringe!" }
+    ];
+
+    // Sound Synthesizer (Web Audio API)
     let audioCtx = null;
     function initAudio() {
       if (!audioCtx) {
@@ -290,7 +327,7 @@
     bestScoreText.textContent = bestScore;
 
     // Game Variables
-    let bird, obstacles, stars, frameCount, score, gameState;
+    let bird, obstacles, stars, floatingTexts, frameCount, score, gameState;
     const PASTEL_COLORS = ["#FF80BF", "#C084FC", "#38BDF8", "#FBBF24", "#34D399", "#FB7185"];
 
     function resetGameData() {
@@ -304,9 +341,22 @@
       };
       obstacles = [];
       stars = [];
+      floatingTexts = [];
       frameCount = 0;
       score = 0;
       gameState = "MENU"; // MENU, COUNTDOWN, PLAYING, GAMEOVER
+    }
+
+    // Spawn floating Gen Z popup text
+    function addAuraTease(x, y, text, color = "#FF1493") {
+      floatingTexts.push({
+        x: x,
+        y: y,
+        text: text,
+        opacity: 1.0,
+        color: color,
+        scale: 1.2
+      });
     }
 
     // Countdown Logic
@@ -400,11 +450,15 @@
         let obs = obstacles[i];
         obs.x -= config.speed;
 
-        // Score increment
+        // Score increment with Gen Z Aura Tease!
         if (!obs.passed && obs.x + obs.width < bird.x) {
           obs.passed = true;
           score++;
           playSound('score');
+
+          // Pick random Gen Z praise
+          const randomTease = GENZ_PASS_TEASES[Math.floor(Math.random() * GENZ_PASS_TEASES.length)];
+          addAuraTease(bird.x + 10, bird.y - 15, randomTease, "#DB2777");
         }
 
         // Collision Check
@@ -429,7 +483,21 @@
             star.collected = true;
             score += 2; // Bonus points!
             playSound('score');
+
+            // Pick star teaser
+            const starTease = GENZ_STAR_TEASES[Math.floor(Math.random() * GENZ_STAR_TEASES.length)];
+            addAuraTease(star.x, star.y - 10, starTease, "#D97706");
           }
+        }
+      }
+
+      // Update Floating Aura Text Animations
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        let ft = floatingTexts[i];
+        ft.y -= 1.2;
+        ft.opacity -= 0.025;
+        if (ft.opacity <= 0) {
+          floatingTexts.splice(i, 1);
         }
       }
 
@@ -524,6 +592,19 @@
 
       ctx.restore();
 
+      // Draw Floating Gen Z Teasing Text Popups
+      floatingTexts.forEach(ft => {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, ft.opacity);
+        ctx.font = "bold 13px Fredoka, sans-serif";
+        ctx.fillStyle = ft.color;
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 3;
+        ctx.strokeText(ft.text, ft.x, ft.y);
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+      });
+
       // Floor Grass
       ctx.fillStyle = "#4ADE80";
       ctx.fillRect(0, canvas.height - 18, canvas.width, 18);
@@ -541,8 +622,8 @@
         ctx.textAlign = "center";
         ctx.strokeStyle = "rgba(219, 39, 119, 0.5)";
         ctx.lineWidth = 4;
-        ctx.strokeText(score, canvas.width / 2, 50);
-        ctx.fillText(score, canvas.width / 2, 50);
+        ctx.strokeText(score, canvas.width / 2, 45);
+        ctx.fillText(score, canvas.width / 2, 45);
       }
     }
 
@@ -590,6 +671,13 @@
 
       finalScore.textContent = score;
       finalBest.textContent = bestScore;
+
+      // Select random Gen Z roast / taunt
+      const roast = GENZ_ROASTS[Math.floor(Math.random() * GENZ_ROASTS.length)];
+      genzEmoji.textContent = roast.emoji;
+      genzTitle.textContent = roast.title;
+      genzSubtext.textContent = roast.text;
+
       gameOverScreen.classList.remove("hidden");
     }
 
